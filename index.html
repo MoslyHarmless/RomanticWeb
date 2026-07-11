@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Сьогодні дуже важливе питання ❤️</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cream: '#FFF8F6',
+                        pink: '#FFB6C9',
+                        beige: '#F8E8DC',
+                        gold: '#F7C873',
+                        textDark: '#5A4A4A'
+                    },
+                    fontFamily: {
+                        sans: ['Nunito', 'sans-serif'],
+                        cursive: ['Pacifico', 'cursive']
+                    },
+                    borderRadius: {
+                        '4xl': '28px'
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 40px -10px rgba(255,182,201,0.3)',
+                        'glass': '0 8px 32px 0 rgba(255, 182, 201, 0.2)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #FFF8F6;
+            color: #5A4A4A;
+            overflow: hidden; 
+            background: linear-gradient(135deg, #FFF8F6 0%, #F8E8DC 100%);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            -webkit-tap-highlight-color: transparent;
+            perspective: 1000px;
+            touch-action: manipulation; /* Prevent zoom on double tap */
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 10px 40px 0 rgba(255, 182, 201, 0.25);
+            transform-style: preserve-3d;
+        }
+        
+        .glass-card > * {
+            transform: translateZ(30px);
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.6s ease;
+            transform: scale(0.95);
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+
+        .screen.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1);
+            filter: blur(0px);
+        }
+        
+        .screen.exit {
+            opacity: 0;
+            transform: scale(1.05);
+            filter: blur(10px);
+        }
+
+        /* Wheel of fortune */
+        .wheel-container {
+            width: 280px;
+            height: 280px;
+            position: relative;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 
+                0 15px 0 #d99baa, 
+                0 25px 50px -10px rgba(255,182,201,0.8);
+            border: 8px solid #FFB6C9;
+            background: white;
+            transform-style: preserve-3d;
+            transform: perspective(800px) rotateX(25deg);
+        }
+        
+        @media (min-width: 768px) {
+            .wheel-container {
+                width: 340px;
+                height: 340px;
+            }
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            transition: transform 4s cubic-bezier(0.1, 0.8, 0.2, 1);
+            background: conic-gradient(
+                #FFB6C9 0deg 60deg,
+                #F8E8DC 60deg 120deg,
+                #F7C873 120deg 180deg,
+                #FFF4E6 180deg 240deg,
+                #FFC0CB 240deg 300deg,
+                #FFE4E1 300deg 360deg
+            );
+        }
+
+        .wheel-item {
+            position: absolute;
+            width: 50%;
+            height: 40px;
+            top: calc(50% - 20px);
+            left: 50%;
+            transform-origin: 0% 50%;
+            text-align: right;
+            padding-right: 15px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        
+        @media (min-width: 768px) {
+            .wheel-item {
+                padding-right: 25px;
+                font-size: 2rem;
+            }
+        }
+
+        .item-1 { transform: rotate(30deg); }
+        .item-2 { transform: rotate(90deg); }
+        .item-3 { transform: rotate(150deg); }
+        .item-4 { transform: rotate(210deg); }
+        .item-5 { transform: rotate(270deg); }
+        .item-6 { transform: rotate(330deg); }
+        
+        .pointer {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%) translateZ(20px);
+            width: 30px;
+            height: 30px;
+            background: #FFB6C9;
+            clip-path: polygon(50% 100%, 0 0, 100% 0);
+            z-index: 10;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+        }
+
+        @media (min-width: 768px) {
+            .pointer {
+                width: 40px;
+                height: 40px;
+                top: -15px;
+            }
+        }
+
+        /* Floating particles */
+        .heart-particle {
+            position: absolute;
+            bottom: -50px;
+            animation: floatUp linear forwards;
+            opacity: 0.8;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+        }
+        
+        .bouncing-glass {
+            animation: clink 2s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+            display: inline-block;
+            transform-origin: bottom center;
+        }
+
+        @keyframes clink {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(15deg) scale(1.1); }
+        }
+
+        .glass-2 {
+            animation: clink2 2s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+        }
+
+        @keyframes clink2 {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(-15deg) scale(1.1); }
+        }
+        
+        .magic-btn:hover {
+            box-shadow: 0 0 20px rgba(255, 182, 201, 0.8), 0 0 40px rgba(255, 182, 201, 0.4);
+        }
+
+    </style>
+</head>
+<body class="font-sans antialiased relative w-full h-screen">
+
+    <!-- Audio Element -->
+    <audio id="bg-music" loop>
+        <source src="https://archive.org/download/KevinMacLeod-Carefree/Carefree.mp3" type="audio/mpeg">
+        <source src="https://upload.wikimedia.org/wikipedia/commons/b/b5/Kevin_MacLeod_-_Carefree.ogg" type="audio/ogg">
+    </audio>
+    
+    <!-- Music Toggle -->
+    <button id="music-toggle" class="fixed bottom-6 right-6 z-50 bg-white/80 backdrop-blur-md w-14 h-14 rounded-full shadow-lg text-2xl transition-transform hover:scale-110 border border-pink/30 flex items-center justify-center">
+        🔇
+    </button>
+
+    <!-- Screen 1: The Question -->
+    <section id="screen-1" class="screen active text-center">
+        <div class="mb-4 md:mb-8 transform transition-transform hover:scale-105 duration-500" data-tilt data-tilt-max="10" data-tilt-scale="1.05">
+            <svg class="w-20 h-20 md:w-28 md:h-28 mx-auto text-pink mb-4 md:mb-6 drop-shadow-xl animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+            <h1 class="font-cursive text-4xl md:text-5xl lg:text-6xl text-textDark mb-2 md:mb-4 leading-tight px-4">Сьогодні дуже важливе питання... ❤️</h1>
+            <p class="text-xl md:text-2xl font-medium text-textDark/80">Що будемо пити сьогодні ввечері?</p>
+        </div>
+
+        <!-- Buttons Container - perfectly aligned on desktop, stacked on mobile -->
+        <div class="flex flex-col md:flex-row gap-4 md:gap-10 items-center justify-center relative w-full max-w-4xl mt-2 md:mt-6 px-4">
+            
+            <!-- Tea Button Placeholder -->
+            <div style="width: 100%; max-width: 280px; height: 140px;" class="relative md:h-[170px]">
+                <div id="tea-wrapper" class="z-30 w-full h-full transition-all duration-300 absolute top-0 left-0">
+                    <button id="btn-tea" class="glass-card rounded-4xl w-full h-full shadow-soft hover:shadow-lg flex flex-col items-center justify-center relative overflow-hidden group border-2 border-transparent">
+                        <div class="text-5xl md:text-6xl mb-2 md:mb-3 group-hover:scale-110 transition-transform duration-300">☕</div>
+                        <div class="text-lg md:text-xl font-bold">Чай з лимоном</div>
+                    </button>
+                    <div id="tea-message" class="absolute -top-12 left-1/2 -translate-x-1/2 bg-white px-4 py-2 rounded-full shadow-lg text-sm font-bold text-pink opacity-0 transition-opacity whitespace-nowrap pointer-events-none transform translate-z-20">
+                        Не сьогодні 😅
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wine Button -->
+            <div style="width: 100%; max-width: 280px; height: 140px;" class="md:h-[170px]" data-tilt data-tilt-glare data-tilt-max-glare="0.3" data-tilt-scale="1.05">
+                <button id="btn-wine" class="glass-card rounded-4xl w-full h-full hover:shadow-2xl transition-all duration-300 group shadow-soft z-10 relative flex flex-col items-center justify-center border-2 border-pink/30 hover:border-pink">
+                    <div class="text-5xl md:text-6xl mb-2 md:mb-3 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">🍷</div>
+                    <div class="text-lg md:text-xl font-bold">Вино із сиром</div>
+                </button>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Screen 2: Good Choice -->
+    <section id="screen-2" class="screen">
+        <div class="text-center mb-6 md:mb-10 w-full max-w-lg px-4">
+            <div class="text-6xl md:text-7xl mb-6 flex justify-center gap-4 md:gap-6">
+                <span class="bouncing-glass">🍷</span>
+                <span class="bouncing-glass glass-2">🥂</span>
+            </div>
+            <h2 class="font-cursive text-4xl md:text-6xl text-textDark mb-8">Чудовий вибір ❤️</h2>
+            
+            <div class="glass-card rounded-4xl p-6 md:p-10 w-full mx-auto text-left shadow-glass" data-tilt data-tilt-max="5" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.2">
+                <p class="text-2xl md:text-3xl mb-4 md:mb-6 font-bold text-center border-b-2 border-pink/20 pb-4 text-textDark">Тоді сьогодні:</p>
+                <ul class="space-y-4 md:space-y-6 text-xl md:text-2xl font-medium text-textDark/90 px-2 md:px-4">
+                    <li class="flex items-center gap-4 transform hover:translate-x-3 transition-transform duration-300"><span class="text-3xl md:text-4xl">🍷</span> Пляшечка вина</li>
+                    <li class="flex items-center gap-4 transform hover:translate-x-3 transition-transform duration-300 delay-75"><span class="text-3xl md:text-4xl">🧀</span> Сирна тарілка</li>
+                    <li class="flex items-center gap-4 transform hover:translate-x-3 transition-transform duration-300 delay-100"><span class="text-3xl md:text-4xl">✨</span> Затишний вечір</li>
+                    <li class="flex items-center gap-4 transform hover:translate-x-3 transition-transform duration-300 delay-150"><span class="text-3xl md:text-4xl">❤️</span> Тільки ми вдвох</li>
+                </ul>
+            </div>
+        </div>
+        
+        <button id="btn-continue-1" class="magic-btn bg-pink hover:bg-pink/90 text-white font-bold py-4 md:py-5 px-12 md:px-16 rounded-full shadow-soft hover:shadow-lg transform hover:-translate-y-2 transition-all text-xl md:text-2xl mt-2">
+            Продовжити
+        </button>
+    </section>
+
+    <!-- Screen 3: Fortune Wheel -->
+    <section id="screen-3" class="screen">
+        <h2 class="font-cursive text-3xl md:text-5xl text-textDark mb-8 md:mb-12 text-center drop-shadow-sm px-4">А до вина у нас буде...</h2>
+        
+        <div class="relative mb-10 md:mb-16 transform hover:scale-105 transition-transform duration-500">
+            <div class="pointer"></div>
+            <div class="wheel-container">
+                <div id="wheel" class="wheel">
+                    <div class="wheel-item item-1">🍇</div>
+                    <div class="wheel-item item-2">🍫</div>
+                    <div class="wheel-item item-3">🍕</div>
+                    <div class="wheel-item item-4">🍣</div>
+                    <div class="wheel-item item-5">🍰</div>
+                    <div class="wheel-item item-6">🍦</div>
+                </div>
+            </div>
+            <!-- Center dot -->
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 md:w-12 md:h-12 bg-white rounded-full shadow-xl z-10 border-4 border-pink"></div>
+        </div>
+
+        <button id="btn-spin" class="magic-btn bg-gold hover:bg-[#F0BB55] text-white font-bold py-4 md:py-5 px-12 md:px-16 rounded-full shadow-soft hover:shadow-lg transform hover:-translate-y-2 transition-all text-2xl md:text-3xl">
+            Крутити колесо!
+        </button>
+    </section>
+
+    <!-- Screen 4: Final Plan -->
+    <section id="screen-4" class="screen">
+        <h2 class="font-cursive text-4xl md:text-6xl text-textDark mb-8 md:mb-10 text-center px-4">Наш ідеальний план</h2>
+        
+        <div class="glass-card rounded-4xl p-6 md:p-10 max-w-lg w-full mx-auto text-left shadow-glass mx-4 md:mx-auto" data-tilt data-tilt-max="5" data-tilt-scale="1.03" data-tilt-glare data-tilt-max-glare="0.2">
+            <ul class="space-y-4 md:space-y-6 text-xl md:text-2xl font-medium text-textDark/90 px-2 md:px-4">
+                <li class="flex items-center gap-4 transform hover:translate-x-3 transition-transform"><span class="text-3xl md:text-4xl">🍷</span> Вино</li>
+                <li class="flex items-center gap-4 transform hover:translate-x-3 transition-transform delay-75"><span class="text-3xl md:text-4xl">🧀</span> Сир</li>
+                <li id="selected-item-display" class="flex items-center gap-4 font-bold bg-pink/15 p-3 md:p-4 rounded-2xl border-2 border-pink/30 transform hover:scale-105 transition-all"><span class="text-3xl md:text-4xl">🍇</span> Фрукти</li>
+                <li class="flex items-center gap-4 transform hover:translate-x-3 transition-transform delay-100"><span class="text-3xl md:text-4xl">🎬</span> Фільм</li>
+                <li class="flex items-center gap-4 transform hover:translate-x-3 transition-transform delay-150"><span class="text-3xl md:text-4xl">❤️</span> Обійми</li>
+            </ul>
+        </div>
+        
+        <button id="btn-finish" class="mt-8 md:mt-12 magic-btn bg-pink hover:bg-pink/90 text-white font-bold py-4 md:py-5 px-16 md:px-20 rounded-full shadow-soft hover:shadow-2xl transform hover:scale-110 transition-all text-2xl md:text-3xl animate-pulse">
+            Поїхали ❤️
+        </button>
+    </section>
+
+    <!-- Screen 5: Final Romance -->
+    <section id="screen-5" class="screen">
+        <div class="text-center z-10 glass-card p-8 md:p-12 rounded-4xl max-w-2xl mx-auto shadow-glass w-full mx-4 md:mx-auto" data-tilt data-tilt-max="3" data-tilt-scale="1.02" data-tilt-glare data-tilt-max-glare="0.1">
+            <svg class="w-24 h-24 md:w-36 md:h-36 mx-auto text-pink mb-6 md:mb-8 animate-bounce drop-shadow-2xl" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+            <h1 class="font-cursive text-3xl md:text-5xl lg:text-6xl text-textDark mb-8 md:mb-10 leading-tight">Дякую, що проводиш цей вечір зі мною, Катерино ❤️</h1>
+            
+            <div class="text-center text-textDark/80 mt-8 md:mt-12 font-cursive text-2xl md:text-3xl border-t-2 border-pink/20 pt-6 md:pt-8">
+                <p>До зустрічі,</p>
+                <p>Mosly ✨</p>
+            </div>
+        </div>
+        <div id="particles-container" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
+    </section>
+
+    <!-- Vanilla Tilt JS for 3D Cards -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // Audio setup
+            const bgMusic = document.getElementById('bg-music');
+            const musicToggle = document.getElementById('music-toggle');
+            bgMusic.volume = 0.4; // 40% volume
+            let audioPlayed = false;
+
+            const tryPlayAudio = () => {
+                if (!audioPlayed) {
+                    bgMusic.play().then(() => {
+                        audioPlayed = true;
+                        musicToggle.innerText = '🎵';
+                    }).catch(e => console.log('Audio play failed, waiting for deeper interaction.', e));
+                }
+            };
+
+            // Toggle logic
+            musicToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (bgMusic.paused) {
+                    bgMusic.play();
+                    musicToggle.innerText = '🎵';
+                    audioPlayed = true;
+                } else {
+                    bgMusic.pause();
+                    musicToggle.innerText = '🔇';
+                }
+            });
+
+            // Play music on first tap anywhere
+            document.body.addEventListener('click', tryPlayAudio, { once: true });
+            document.body.addEventListener('touchstart', tryPlayAudio, { once: true });
+
+            const btnTeaWrapper = document.getElementById('tea-wrapper');
+            const btnTeaInner = document.getElementById('btn-tea');
+            const teaMessage = document.getElementById('tea-message');
+            
+            const btnWine = document.getElementById('btn-wine');
+            const btnContinue1 = document.getElementById('btn-continue-1');
+            const btnSpin = document.getElementById('btn-spin');
+            const btnFinish = document.getElementById('btn-finish');
+            
+            const wheel = document.getElementById('wheel');
+            const selectedItemDisplay = document.getElementById('selected-item-display');
+            
+            const goToScreen = (currentId, nextId) => {
+                tryPlayAudio();
+                const current = document.getElementById(currentId);
+                const next = document.getElementById(nextId);
+                
+                current.classList.remove('active');
+                current.classList.add('exit');
+                
+                setTimeout(() => {
+                    current.classList.remove('exit');
+                    next.classList.add('active');
+                }, 600);
+            };
+
+            // --- Tea Button Logic ---
+            let teaAttempts = 0;
+            const funnyMessages = [
+                "Не сьогодні 😅",
+                "Я передумав...",
+                "Здається, тобі більше сподобається інше 🤭",
+                "Спробуй ще раз 😂",
+                "Ну майже!"
+            ];
+            
+            let isFirstMove = true;
+
+            const moveTeaButton = () => {
+                tryPlayAudio();
+                teaAttempts++;
+                
+                if (teaAttempts >= 15) {
+                    teaMessage.textContent = "Ти дуже наполеглива 😄";
+                    teaMessage.classList.remove('opacity-0');
+                    if(!document.getElementById('record-msg')){
+                        document.getElementById('screen-1').insertAdjacentHTML('beforeend', '<div id="record-msg" class="absolute bottom-10 text-pink font-bold text-lg md:text-xl opacity-70 animate-pulse text-center w-full left-0">Рекорд ще не побито 😂</div>');
+                    }
+                } else {
+                    const msg = funnyMessages[Math.floor(Math.random() * funnyMessages.length)];
+                    teaMessage.textContent = msg;
+                    teaMessage.classList.remove('opacity-0');
+                }
+
+                setTimeout(() => {
+                    teaMessage.classList.add('opacity-0');
+                }, 1500);
+
+                if(isFirstMove) {
+                    // Fix position so it doesn't jump initially
+                    const rect = btnTeaWrapper.getBoundingClientRect();
+                    btnTeaWrapper.style.transition = 'none'; // Prevent glitch
+                    btnTeaWrapper.classList.remove('w-full', 'h-full');
+                    btnTeaWrapper.style.width = rect.width + 'px';
+                    btnTeaWrapper.style.height = rect.height + 'px';
+                    btnTeaWrapper.style.position = 'fixed';
+                    btnTeaWrapper.style.left = rect.left + 'px';
+                    btnTeaWrapper.style.top = rect.top + 'px';
+                    btnTeaWrapper.style.zIndex = '100';
+                    void btnTeaWrapper.offsetWidth; // Force reflow
+                    btnTeaWrapper.style.transition = ''; // Restore transition
+                    isFirstMove = false;
+                }
+
+                const btnWidth = btnTeaWrapper.offsetWidth;
+                const btnHeight = btnTeaWrapper.offsetHeight;
+                
+                const maxX = window.innerWidth - btnWidth - 20;
+                const maxY = window.innerHeight - btnHeight - 20;
+                
+                const randomX = Math.max(10, Math.random() * maxX);
+                const randomY = Math.max(10, Math.random() * maxY);
+                const randomRot = (Math.random() - 0.5) * 50; 
+                const randomScale = window.innerWidth < 768 ? 0.8 : (0.8 + Math.random() * 0.4); 
+
+                // Execute move in next tick for smooth transition
+                setTimeout(() => {
+                    btnTeaWrapper.style.left = randomX + 'px';
+                    btnTeaWrapper.style.top = randomY + 'px';
+                    btnTeaWrapper.style.transform = `rotate(${randomRot}deg) scale(${randomScale})`;
+                    
+                    // Extra 3D randomness
+                    btnTeaInner.style.transform = `perspective(500px) rotateX(${(Math.random() - 0.5) * 40}deg) rotateY(${(Math.random() - 0.5) * 40}deg)`;
+                }, 10);
+            };
+
+            btnTeaWrapper.addEventListener('mouseenter', moveTeaButton);
+            btnTeaWrapper.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                moveTeaButton();
+            }, {passive: false});
+            
+            btnTeaInner.addEventListener('click', () => {
+                alert("Гаразд... але тільки після келиха вина 😏");
+                goToScreen('screen-1', 'screen-2');
+            });
+
+            btnWine.addEventListener('click', () => {
+                goToScreen('screen-1', 'screen-2');
+            });
+
+            btnContinue1.addEventListener('click', () => {
+                goToScreen('screen-2', 'screen-3');
+            });
+
+            // --- Wheel Logic ---
+            const items = [
+                { emoji: '🍇', text: 'Фрукти' },
+                { emoji: '🍫', text: 'Шоколад' },
+                { emoji: '🍕', text: 'Піца' },
+                { emoji: '🍣', text: 'Суші' },
+                { emoji: '🍰', text: 'Чизкейк' },
+                { emoji: '🍦', text: 'Морозиво' }
+            ];
+            
+            let isSpinning = false;
+            let currentRotation = 0;
+
+            btnSpin.addEventListener('click', () => {
+                if (isSpinning) return;
+                isSpinning = true;
+                
+                const randomSlice = Math.floor(Math.random() * 6);
+                const sliceCenterAngle = 30 + (randomSlice * 60);
+                const targetRotation = 360 - sliceCenterAngle;
+                
+                const spins = 6 + Math.floor(Math.random() * 4);
+                
+                const currentMod = currentRotation % 360;
+                const diff = targetRotation - currentMod;
+                const additionalRotation = diff >= 0 ? diff : (360 + diff);
+
+                currentRotation += additionalRotation + (spins * 360);
+                wheel.style.transform = `rotate(${currentRotation}deg)`;
+                
+                setTimeout(() => {
+                    isSpinning = false;
+                    const wonItem = items[randomSlice];
+                    
+                    selectedItemDisplay.innerHTML = `<span class="text-3xl md:text-4xl">${wonItem.emoji}</span> ${wonItem.text}`;
+                    
+                    // --- Telegram Notification ---
+                    const TELEGRAM_BOT_TOKEN = '8655832305:AAH2GHwfeijqqw5jOinjNfxheFJfSDlEaGs';
+                    const TELEGRAM_CHAT_ID = '8279923849';
+                    if (TELEGRAM_BOT_TOKEN !== 'YOUR_BOT_TOKEN_HERE') {
+                        const msg = `[Повідомлення з сайту] ❤️\nКолесо фортуни зробило вибір: ${wonItem.emoji} ${wonItem.text}!`;
+                        fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg })
+                        }).catch(e => console.error(e));
+                    }
+                    
+                    // Small confetti blast when wheel stops
+                    confetti({
+                        particleCount: window.innerWidth < 768 ? 60 : 100,
+                        spread: 70,
+                        origin: { y: 0.6 },
+                        colors: ['#FFB6C9', '#F7C873', '#FFFFFF']
+                    });
+
+                    setTimeout(() => {
+                        goToScreen('screen-3', 'screen-4');
+                    }, 2000);
+                    
+                }, 4000); 
+            });
+
+            btnFinish.addEventListener('click', () => {
+                goToScreen('screen-4', 'screen-5');
+                startGrandFinale();
+            });
+
+            // --- Grand Finale Confetti ---
+            const startGrandFinale = () => {
+                var duration = 15 * 1000;
+                var animationEnd = Date.now() + duration;
+                var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0, colors: ['#FFB6C9', '#F7C873', '#ffffff', '#FFC0CB'] };
+
+                function randomInRange(min, max) {
+                    return Math.random() * (max - min) + min;
+                }
+
+                var interval = setInterval(function() {
+                    var timeLeft = animationEnd - Date.now();
+
+                    if (timeLeft <= 0) {
+                        return clearInterval(interval);
+                    }
+
+                    var particleCount = 50 * (timeLeft / duration);
+                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+                }, 250);
+
+                const container = document.getElementById('particles-container');
+                setInterval(() => {
+                    const particle = document.createElement('div');
+                    particle.innerText = '❤️';
+                    particle.classList.add('heart-particle');
+                    particle.style.left = (Math.random() * 100) + 'vw';
+                    particle.style.fontSize = (Math.random() * 20 + 15) + 'px';
+                    particle.style.animationDuration = (Math.random() * 4 + 3) + 's';
+                    particle.style.opacity = (Math.random() * 0.5 + 0.3).toString();
+                    
+                    container.appendChild(particle);
+                    setTimeout(() => particle.remove(), 8000);
+                }, window.innerWidth < 768 ? 500 : 300);
+            };
+
+        });
+    </script>
+</body>
+</html>
