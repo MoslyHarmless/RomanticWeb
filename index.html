@@ -499,16 +499,15 @@
                 }, 10);
             };
 
-            btnTeaWrapper.addEventListener('mouseenter', moveTeaButton);
-            btnTeaWrapper.addEventListener('touchstart', (e) => {
-                e.preventDefault();
+            const handleTeaInteraction = (e) => {
+                if (e && e.cancelable) e.preventDefault();
                 moveTeaButton();
-            }, {passive: false});
-            
-            btnTeaInner.addEventListener('click', () => {
-                alert("Гаразд... але тільки після келиха вина 😏");
-                goToScreen('screen-1', 'screen-2');
-            });
+            };
+
+            btnTeaWrapper.addEventListener('mouseenter', handleTeaInteraction);
+            btnTeaWrapper.addEventListener('touchstart', handleTeaInteraction, {passive: false});
+            btnTeaWrapper.addEventListener('click', handleTeaInteraction);
+            btnTeaInner.addEventListener('click', handleTeaInteraction);
 
             btnWine.addEventListener('click', () => {
                 goToScreen('screen-1', 'screen-2');
